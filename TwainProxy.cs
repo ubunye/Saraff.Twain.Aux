@@ -28,57 +28,59 @@
  * 
  * PLEASE SEND EMAIL TO:  twain@saraff.ru.
  */
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
-using System.Collections.ObjectModel;
 
-namespace Saraff.Twain.Aux {
+namespace Saraff.Twain.Aux
+{
+    internal sealed class TwainProxy
+    {
+        private Twain32 Twain32 { get; set; }
 
-    internal sealed class TwainProxy {
+        private object this[Type type]
+        {
+            get
+            {
+                if (type == typeof(Twain32.TwainPalette)) return Twain32.Palette;
+                return Twain32;
+            }
+        }
 
-        public static IEnumerable<byte[]> Execute(Twain32 twain32,IEnumerable<byte[]> commands) {
-            var _proxy=new TwainProxy {Twain32=twain32};
-            foreach(var _data in commands) {
-                for(var _command=TwainCommand.FromArray(_data); _command!=null; ) {
-                    _proxy._ExecuteCore(_command);
-                    yield return _command.ToArray();
+        public static IEnumerable<byte[]> Execute(Twain32 twain32, IEnumerable<byte[]> commands)
+        {
+            var proxy = new TwainProxy { Twain32 = twain32 };
+            foreach (var data in commands)
+                for (var command = TwainCommand.FromArray(data); command != null;)
+                {
+                    proxy._ExecuteCore(command);
+                    yield return command.ToArray();
                     break;
                 }
-            }
-            yield break;
         }
 
-        public static byte[] Execute(Twain32 twain32,byte[] command) {
-            var _command=TwainCommand.FromArray(command);
-            new TwainProxy {Twain32=twain32}._ExecuteCore(_command);
-            return _command.ToArray();
+        public static byte[] Execute(Twain32 twain32, byte[] command)
+        {
+            var cmd = TwainCommand.FromArray(command);
+            new TwainProxy { Twain32 = twain32 }._ExecuteCore(cmd);
+            return cmd.ToArray();
         }
 
-        private void _ExecuteCore(TwainCommand command) {
-            try {
-                for(var _method=command as MethodTwainCommand; _method!=null; ) {
-                    command.Result=((MethodInfo)_method.Member).Invoke(this[_method.Member.DeclaringType],_method.Parameters);
+        private void _ExecuteCore(TwainCommand command)
+        {
+            try
+            {
+                for (var method = command as MethodTwainCommand; method != null;)
+                {
+                    command.Result =
+                        ((MethodInfo)method.Member).Invoke(this[method.Member.DeclaringType], method.Parameters);
                     return;
                 }
-            } catch(Exception ex) {
-                command.Result=ex;
             }
-        }
-
-        public Twain32 Twain32 {
-            get;
-            set;
-        }
-
-        private object this[Type type] {
-            get {
-                if(type==typeof(Twain32.TwainPalette)) {
-                    return this.Twain32.Palette;
-                }
-                return this.Twain32;
+            catch (Exception ex)
+            {
+                command.Result = ex;
             }
         }
     }

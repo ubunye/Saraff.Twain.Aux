@@ -28,59 +28,50 @@
  * 
  * PLEASE SEND EMAIL TO:  twain@saraff.ru.
  */
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Saraff.Twain.Aux {
-
+namespace Saraff.Twain.Aux
+{
     [Serializable]
-    internal abstract class TwainCommand {
-        private static BinaryFormatter _formatter=new BinaryFormatter();
+    internal abstract class TwainCommand
+    {
+        private static BinaryFormatter _formatter = new BinaryFormatter();
 
-        public MemberInfo Member {
-            get;
-            set;
-        }
+        public MemberInfo Member { get; set; }
 
-        internal object Result {
-            get;
-            set;
-        }
+        internal object Result { get; set; }
 
-        internal byte[] ToArray() {
-            using(var _stream=new MemoryStream()) {
-                TwainCommand._formatter.Serialize(_stream,this);
-                return _stream.ToArray();
+        internal byte[] ToArray()
+        {
+            using (var stream = new MemoryStream())
+            {
+                _formatter.Serialize(stream, this);
+                return stream.ToArray();
             }
         }
 
-        internal static TwainCommand FromArray(byte[] value) {
-            using(var _stream=new MemoryStream(value)) {
-                return TwainCommand._formatter.Deserialize(_stream) as TwainCommand;
+        internal static TwainCommand FromArray(byte[] value)
+        {
+            using (var stream = new MemoryStream(value))
+            {
+                return _formatter.Deserialize(stream) as TwainCommand;
             }
         }
     }
 
     [Serializable]
-    internal sealed class MethodTwainCommand:TwainCommand {
-
-        public object[] Parameters {
-            get;
-            set;
-        }
+    internal sealed class MethodTwainCommand : TwainCommand
+    {
+        public object[] Parameters { get; set; }
     }
 
     [Serializable]
-    internal sealed class EventHandlerTwainCommand:TwainCommand {
-
-        public EventArgs Args {
-            get;
-            set;
-        }
+    internal sealed class EventHandlerTwainCommand : TwainCommand
+    {
+        public EventArgs Args { get; set; }
     }
 }

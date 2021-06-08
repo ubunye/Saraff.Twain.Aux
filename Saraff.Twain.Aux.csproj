@@ -37,6 +37,9 @@
     <AssemblyOriginatorKeyFile>sign.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Saraff.Twain">
+      <HintPath>..\Saraff.Twain.NET\bin\Debug\Saraff.Twain.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -61,12 +64,6 @@
   <ItemGroup>
     <Content Include="COPYING.LESSER.txt" />
     <Content Include="COPYING.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Saraff.Twain\Saraff.Twain.csproj">
-      <Project>{658f9851-4d1c-4d57-904e-f9d7da7f24fc}</Project>
-      <Name>Saraff.Twain</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

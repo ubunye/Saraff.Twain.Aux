@@ -28,38 +28,41 @@
  * 
  * PLEASE SEND EMAIL TO:  twain@saraff.ru.
  */
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Remoting.Proxies;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Permissions;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Proxies;
+using System.Security.Permissions;
 
-namespace Saraff.Twain.Aux {
+namespace Saraff.Twain.Aux
+{
+    internal sealed class TwainPaletteRealProxy : RealProxy
+    {
+        private readonly TwainExternalProcess.AuxProcess _aux;
 
-    internal sealed class TwainPaletteRealProxy:RealProxy {
-        private TwainExternalProcess.AuxProcess _aux;
-
-        internal TwainPaletteRealProxy(TwainExternalProcess.AuxProcess aux):base(typeof(Twain32.TwainPalette)) {
-            this._aux=aux;
+        internal TwainPaletteRealProxy(TwainExternalProcess.AuxProcess aux) : base(typeof(Twain32.TwainPalette))
+        {
+            _aux = aux;
         }
 
-        [SecurityPermissionAttribute(SecurityAction.LinkDemand,Flags=SecurityPermissionFlag.Infrastructure)]
-        public override IMessage Invoke(IMessage msg) {
-            var _msg=msg as IMethodCallMessage;
-            try {
-                var _args=_msg.Args;
+        [SecurityPermissionAttribute(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.Infrastructure)]
+        public override IMessage Invoke(IMessage msg)
+        {
+            var message = msg as IMethodCallMessage;
+            try
+            {
+                var args = message?.Args;
 
-                TwainCommand _command;
-                var _result=this._aux.Execute(_command=new MethodTwainCommand {Member=_msg.MethodBase,Parameters=_args});
-                for(Exception _ex=_result as Exception,_ex2=_result as TargetInvocationException; _ex!=null; ) {
-                    return new ReturnMessage(_ex2!=null?_ex2.InnerException:_ex,_msg);
-                }
-                return new ReturnMessage(_result,_args,0,_msg.LogicalCallContext,_msg);
-            } catch(Exception ex) {
-                return new ReturnMessage(ex,_msg);
+                var result = _aux.Execute(new MethodTwainCommand
+                { Member = message?.MethodBase, Parameters = args });
+                for (Exception ex = result as Exception, ex2 = result as TargetInvocationException; ex != null;)
+                    return new ReturnMessage(ex2 != null ? ex2.InnerException : ex, message);
+                return new ReturnMessage(result, args, 0, message?.LogicalCallContext, message);
+            }
+            catch (Exception ex)
+            {
+                return new ReturnMessage(ex, message);
             }
         }
     }

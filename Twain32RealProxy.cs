@@ -28,212 +28,262 @@
  * 
  * PLEASE SEND EMAIL TO:  twain@saraff.ru.
  */
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Remoting.Proxies;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Permissions;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Proxies;
+using System.Security.Permissions;
 
-namespace Saraff.Twain.Aux {
-
-    internal sealed class Twain32RealProxy:RealProxy {
-        private TwainExternalProcess.AuxProcess _aux;
+namespace Saraff.Twain.Aux
+{
+    internal sealed class Twain32RealProxy : RealProxy
+    {
+        private readonly TwainExternalProcess.AuxProcess _aux;
         private TwainCapabilities _capabilities;
         private Twain32.TwainPalette _palette;
 
-        internal Twain32RealProxy(TwainExternalProcess.AuxProcess aux):base(typeof(Twain32)) {
-            this._aux=aux;
-            this._aux.FireEvent+=this._FireEvent;
+        internal Twain32RealProxy(TwainExternalProcess.AuxProcess aux) : base(typeof(Twain32))
+        {
+            _aux = aux;
+            _aux.FireEvent += _FireEvent;
         }
 
-        [SecurityPermissionAttribute(SecurityAction.LinkDemand,Flags=SecurityPermissionFlag.Infrastructure)]
-        public override IMessage Invoke(IMessage msg) {
-            var _msg=msg as IMethodCallMessage;
-            try {
-                var _args=_msg.Args;
+        [SecurityPermissionAttribute(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.Infrastructure)]
+        public override IMessage Invoke(IMessage msg)
+        {
+            var message = msg as IMethodCallMessage;
+            try
+            {
+                var args = message?.Args;
 
                 #region SpecialName
 
-                if(_msg.MethodBase.IsSpecialName) {
-                    var _name=_msg.MethodBase.Name.Split(new string[] { "_" },2,StringSplitOptions.None);
-                    switch(_name[0]) {
+                if (message != null && message.MethodBase.IsSpecialName)
+                {
+                    var name = message.MethodBase.Name.Split(new[] { "_" }, 2, StringSplitOptions.None);
+                    switch (name[0])
+                    {
                         case "get":
-                            switch(_name[1]) {
+                            switch (name[1])
+                            {
                                 case "Capabilities":
-                                    return new ReturnMessage(this.Capabilities,_args,0,_msg.LogicalCallContext,_msg);
+                                    return new ReturnMessage(Capabilities, args, 0, message.LogicalCallContext, message);
                                 case "Palette":
-                                    return new ReturnMessage(this.Palette,_args,0,_msg.LogicalCallContext,_msg);
+                                    return new ReturnMessage(Palette, args, 0, message.LogicalCallContext, message);
                             }
+
                             break;
                         case "add":
-                            switch(_name[1]) {
+                            switch (name[1])
+                            {
                                 case Twain32Events.AcquireCompleted:
-                                    this.AcquireCompleted+=_args[0] as EventHandler;
+                                    AcquireCompleted += args[0] as EventHandler;
                                     break;
                                 case Twain32Events.AcquireError:
-                                    this.AcquireError+=_args[0] as EventHandler<Twain32.AcquireErrorEventArgs>;
+                                    AcquireError += args[0] as EventHandler<Twain32.AcquireErrorEventArgs>;
                                     break;
                                 case Twain32Events.XferDone:
-                                    this.XferDone+=_args[0] as EventHandler<Twain32.XferDoneEventArgs>;
+                                    XferDone += args[0] as EventHandler<Twain32.XferDoneEventArgs>;
                                     break;
                                 case Twain32Events.EndXfer:
-                                    this.EndXfer+=_args[0] as EventHandler<Twain32.EndXferEventArgs>;
+                                    EndXfer += args[0] as EventHandler<Twain32.EndXferEventArgs>;
                                     break;
                                 case Twain32Events.SetupMemXferEvent:
-                                    this.SetupMemXferEvent+=_args[0] as EventHandler<Twain32.SetupMemXferEventArgs>;
+                                    SetupMemXferEvent += args[0] as EventHandler<Twain32.SetupMemXferEventArgs>;
                                     break;
                                 case Twain32Events.MemXferEvent:
-                                    this.MemXferEvent+=_args[0] as EventHandler<Twain32.MemXferEventArgs>;
+                                    MemXferEvent += args[0] as EventHandler<Twain32.MemXferEventArgs>;
                                     break;
                                 case Twain32Events.SetupFileXferEvent:
-                                    this.SetupFileXferEvent+=_args[0] as EventHandler<Twain32.SetupFileXferEventArgs>;
+                                    SetupFileXferEvent += args[0] as EventHandler<Twain32.SetupFileXferEventArgs>;
                                     break;
                                 case Twain32Events.FileXferEvent:
-                                    this.FileXferEvent+=_args[0] as EventHandler<Twain32.FileXferEventArgs>;
+                                    FileXferEvent += args[0] as EventHandler<Twain32.FileXferEventArgs>;
                                     break;
                                 case Twain32Events.TwainStateChanged:
-                                    this.TwainStateChanged+=_args[0] as EventHandler<Twain32.TwainStateEventArgs>;
+                                    TwainStateChanged += args[0] as EventHandler<Twain32.TwainStateEventArgs>;
                                     break;
                                 default:
-                                    return new ReturnMessage(new NotImplementedException(),_msg);
+                                    return new ReturnMessage(new NotImplementedException(), message);
                             }
-                            return new ReturnMessage(null,_args,0,_msg.LogicalCallContext,_msg);
+
+                            return new ReturnMessage(null, args, 0, message.LogicalCallContext, message);
                         case "remove":
-                            switch(_name[1]) {
+                            switch (name[1])
+                            {
                                 case Twain32Events.AcquireCompleted:
-                                    this.AcquireCompleted-=_args[0] as EventHandler;
+                                    AcquireCompleted -= args[0] as EventHandler;
                                     break;
                                 case Twain32Events.AcquireError:
-                                    this.AcquireError-=_args[0] as EventHandler<Twain32.AcquireErrorEventArgs>;
+                                    AcquireError -= args[0] as EventHandler<Twain32.AcquireErrorEventArgs>;
                                     break;
                                 case Twain32Events.XferDone:
-                                    this.XferDone-=_args[0] as EventHandler<Twain32.XferDoneEventArgs>;
+                                    XferDone -= args[0] as EventHandler<Twain32.XferDoneEventArgs>;
                                     break;
                                 case Twain32Events.EndXfer:
-                                    this.EndXfer-=_args[0] as EventHandler<Twain32.EndXferEventArgs>;
+                                    EndXfer -= args[0] as EventHandler<Twain32.EndXferEventArgs>;
                                     break;
                                 case Twain32Events.SetupMemXferEvent:
-                                    this.SetupMemXferEvent-=_args[0] as EventHandler<Twain32.SetupMemXferEventArgs>;
+                                    SetupMemXferEvent -= args[0] as EventHandler<Twain32.SetupMemXferEventArgs>;
                                     break;
                                 case Twain32Events.MemXferEvent:
-                                    this.MemXferEvent-=_args[0] as EventHandler<Twain32.MemXferEventArgs>;
+                                    MemXferEvent -= args[0] as EventHandler<Twain32.MemXferEventArgs>;
                                     break;
                                 case Twain32Events.SetupFileXferEvent:
-                                    this.SetupFileXferEvent-=_args[0] as EventHandler<Twain32.SetupFileXferEventArgs>;
+                                    SetupFileXferEvent -= args[0] as EventHandler<Twain32.SetupFileXferEventArgs>;
                                     break;
                                 case Twain32Events.FileXferEvent:
-                                    this.FileXferEvent-=_args[0] as EventHandler<Twain32.FileXferEventArgs>;
+                                    FileXferEvent -= args[0] as EventHandler<Twain32.FileXferEventArgs>;
                                     break;
                                 case Twain32Events.TwainStateChanged:
-                                    this.TwainStateChanged-=_args[0] as EventHandler<Twain32.TwainStateEventArgs>;
+                                    TwainStateChanged -= args[0] as EventHandler<Twain32.TwainStateEventArgs>;
                                     break;
                                 default:
-                                    return new ReturnMessage(new NotImplementedException(),_msg);
+                                    return new ReturnMessage(new NotImplementedException(), message);
                             }
-                            return new ReturnMessage(null,_args,0,_msg.LogicalCallContext,_msg);
+
+                            return new ReturnMessage(null, args, 0, message.LogicalCallContext, message);
                     }
                 }
 
                 #endregion
 
-                TwainCommand _command;
-                var _result=this._aux.Execute(_command=new MethodTwainCommand {Member=_msg.MethodBase,Parameters=_args});
-                for(Exception _ex=_result as Exception,_ex2=_result as TargetInvocationException; _ex!=null; ) {
-                    return new ReturnMessage(_ex2!=null?_ex2.InnerException:_ex,_msg);
-                }
-                return new ReturnMessage(_result,_args,0,_msg.LogicalCallContext,_msg);
-            } catch(Exception ex) {
-                return new ReturnMessage(ex,_msg);
+                var result = _aux.Execute(new MethodTwainCommand
+                { Member = message?.MethodBase, Parameters = args });
+
+                for (Exception ex = result as Exception, ex2 = result as TargetInvocationException; ex != null;)
+                    return new ReturnMessage(ex2 != null ? ex2.InnerException : ex, message);
+
+                return new ReturnMessage(result, args, 0, message?.LogicalCallContext, message);
+
+            }
+            catch (Exception ex)
+            {
+                return new ReturnMessage(ex, message);
             }
         }
 
-        private void _FireEvent(EventHandlerTwainCommand obj) {
-            switch(obj.Member.Name) {
+        private void _FireEvent(EventHandlerTwainCommand obj)
+        {
+            switch (obj.Member.Name)
+            {
                 case Twain32Events.AcquireCompleted:
-                    for(var _args=obj.Args; this.AcquireCompleted!=null&&_args!=null;) {
-                        this.AcquireCompleted(this,_args);
+                    for (var args = obj.Args; AcquireCompleted != null && args != null;)
+                    {
+                        AcquireCompleted(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.AcquireError:
-                    for(var _args=obj.Args as Twain32.AcquireErrorEventArgs; this.AcquireError!=null&&_args!=null; ) {
-                        this.AcquireError(this,_args);
+                    for (var args = obj.Args as Twain32.AcquireErrorEventArgs; AcquireError != null && args != null;)
+                    {
+                        AcquireError(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.XferDone:
-                    for(var _args=obj.Args as Twain32.SerializableCancelEventArgs; this.XferDone!=null&&_args!=null; ) {
-                        var _info=Delegate.CreateDelegate(typeof(Twain32).GetNestedType("GetImageInfoCallback",BindingFlags.NonPublic),this.GetTransparentProxy(),typeof(Twain32).GetMethod("_GetImageInfo",BindingFlags.Instance|BindingFlags.NonPublic));
-                        var _extInfo=Delegate.CreateDelegate(typeof(Twain32).GetNestedType("GetExtImageInfoCallback",BindingFlags.NonPublic),this.GetTransparentProxy(),typeof(Twain32).GetMethod("_GetExtImageInfo",BindingFlags.Instance|BindingFlags.NonPublic));
-                        var _args2 = Twain32RealProxy._CreateInstance<Twain32.XferDoneEventArgs>(_info,_extInfo);
-                        this.XferDone(this,_args2);
-                        _args.Cancel=_args2.Cancel;
+                    for (var args = obj.Args as Twain32.SerializableCancelEventArgs;
+                        XferDone != null && args != null;)
+                    {
+                        var info = Delegate.CreateDelegate(
+                            typeof(Twain32).GetNestedType("GetImageInfoCallback", BindingFlags.NonPublic),
+                            GetTransparentProxy(),
+                            typeof(Twain32).GetMethod("_GetImageInfo", BindingFlags.Instance | BindingFlags.NonPublic));
+                        var extInfo = Delegate.CreateDelegate(
+                            typeof(Twain32).GetNestedType("GetExtImageInfoCallback", BindingFlags.NonPublic),
+                            GetTransparentProxy(),
+                            typeof(Twain32).GetMethod("_GetExtImageInfo",
+                                BindingFlags.Instance | BindingFlags.NonPublic));
+                        var args2 = _CreateInstance<Twain32.XferDoneEventArgs>(info, extInfo);
+                        XferDone?.Invoke(this, args2);
+                        args.Cancel = args2.Cancel;
                         break;
                     }
+
                     break;
                 case Twain32Events.EndXfer:
-                    for(var _args=obj.Args as Twain32.EndXferEventArgs; this.EndXfer!=null&&_args!=null; ) {
-                        this.EndXfer(this,_args);
+                    for (var args = obj.Args as Twain32.EndXferEventArgs; EndXfer != null && args != null;)
+                    {
+                        EndXfer(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.SetupMemXferEvent:
-                    for(var _args=obj.Args as Twain32.SetupMemXferEventArgs; this.SetupMemXferEvent!=null&&_args!=null; ) {
-                        this.SetupMemXferEvent(this,_args);
+                    for (var args = obj.Args as Twain32.SetupMemXferEventArgs;
+                        SetupMemXferEvent != null && args != null;)
+                    {
+                        SetupMemXferEvent(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.MemXferEvent:
-                    for(var _args=obj.Args as Twain32.MemXferEventArgs; this.MemXferEvent!=null&&_args!=null; ) {
-                        this.MemXferEvent(this,_args);
+                    for (var args = obj.Args as Twain32.MemXferEventArgs;
+                        MemXferEvent != null && args != null;)
+                    {
+                        MemXferEvent(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.SetupFileXferEvent:
-                    for(var _args=obj.Args as Twain32.SetupFileXferEventArgs; this.SetupFileXferEvent!=null&&_args!=null; ) {
-                        this.SetupFileXferEvent(this,_args);
+                    for (var args = obj.Args as Twain32.SetupFileXferEventArgs;
+                        SetupFileXferEvent != null && args != null;)
+                    {
+                        SetupFileXferEvent(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.FileXferEvent:
-                    for(var _args=obj.Args as Twain32.FileXferEventArgs; this.FileXferEvent!=null&&_args!=null; ) {
-                        this.FileXferEvent(this,_args);
+                    for (var args = obj.Args as Twain32.FileXferEventArgs;
+                        FileXferEvent != null && args != null;)
+                    {
+                        FileXferEvent(this, args);
                         break;
                     }
+
                     break;
                 case Twain32Events.TwainStateChanged:
-                    for(var _args=obj.Args as Twain32.TwainStateEventArgs; this.TwainStateChanged!=null&&_args!=null; ) {
-                        this.TwainStateChanged(this,_args);
+                    for (var args = obj.Args as Twain32.TwainStateEventArgs;
+                        TwainStateChanged != null && args != null;)
+                    {
+                        TwainStateChanged(this, args);
                         break;
                     }
+
                     break;
             }
         }
 
-        private static T _CreateInstance<T>(params object[] args) where T:class {
-            return Activator.CreateInstance(typeof(T),BindingFlags.Instance|BindingFlags.NonPublic,null,args,null) as T;
+        private static T _CreateInstance<T>(params object[] args) where T : class
+        {
+            return Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic, null, args,
+                null) as T;
         }
 
         #region Twain32 Properties
 
-        private TwainCapabilities Capabilities {
-            get {
-                if(this._capabilities==null) {
-                    this._capabilities=Twain32RealProxy._CreateInstance<TwainCapabilities>(this.GetTransparentProxy());
-                }
-                return this._capabilities;
+        private TwainCapabilities Capabilities
+        {
+            get
+            {
+                if (_capabilities == null) _capabilities = _CreateInstance<TwainCapabilities>(GetTransparentProxy());
+                return _capabilities;
             }
         }
 
-        private Twain32.TwainPalette Palette {
-            get {
-                if(this._palette==null) {
-                    this._palette=new TwainPaletteRealProxy(this._aux).GetTransparentProxy() as Twain32.TwainPalette;
-                }
-                return this._palette;
+        private Twain32.TwainPalette Palette
+        {
+            get
+            {
+                if (_palette == null)
+                    _palette = new TwainPaletteRealProxy(_aux).GetTransparentProxy() as Twain32.TwainPalette;
+                return _palette;
             }
         }
 
@@ -262,16 +312,17 @@ namespace Saraff.Twain.Aux {
         #endregion
     }
 
-    internal sealed class Twain32Events {
-        public const string AcquireCompleted="AcquireCompleted";
-        public const string AcquireError="AcquireError";
-        public const string XferDone="XferDone";
-        public const string EndXfer="EndXfer";
-        public const string SetupMemXferEvent="SetupMemXferEvent";
-        public const string MemXferEvent="MemXferEvent";
-        public const string SetupFileXferEvent="SetupFileXferEvent";
-        public const string FileXferEvent="FileXferEvent";
-        public const string TwainStateChanged="TwainStateChanged";
-        public const string DeviceEvent="DeviceEvent";
+    internal sealed class Twain32Events
+    {
+        public const string AcquireCompleted = "AcquireCompleted";
+        public const string AcquireError = "AcquireError";
+        public const string XferDone = "XferDone";
+        public const string EndXfer = "EndXfer";
+        public const string SetupMemXferEvent = "SetupMemXferEvent";
+        public const string MemXferEvent = "MemXferEvent";
+        public const string SetupFileXferEvent = "SetupFileXferEvent";
+        public const string FileXferEvent = "FileXferEvent";
+        public const string TwainStateChanged = "TwainStateChanged";
+        public const string DeviceEvent = "DeviceEvent";
     }
 }
